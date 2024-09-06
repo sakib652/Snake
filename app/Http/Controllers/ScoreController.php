@@ -9,7 +9,8 @@ class ScoreController extends Controller
 {
     public function index()
     {
-        return Score::orderBy('score', 'desc')->take(10)->get();
+        $scores = Score::orderBy('score', 'desc')->take(10)->get();
+        return view('high-scores', ['scores' => $scores]);
     }
 
     public function store(Request $request)
