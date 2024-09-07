@@ -1,86 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #8ACDEA;
-            margin: 0;
-            flex-direction: column;
-            font-family: 'Changa one', Arial, sans-serif;
-        }
+@section('title', 'Snake Game')
 
-        canvas {
-            background-color: #021527;
-            border: 5px solid #FFD966;
-            border-radius: 15px;
-            position: relative;
-        }
-
-        #scoreContainer {
-            margin-bottom: 20px;
-            text-align: center;
-            background-color: #FFD966;
-            padding: 10px 20px;
-            border-radius: 10px;
-            color: #021527;
-            font-size: 20px;
-        }
-
-        #scoreContainer h2 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        #score {
-            font-size: 30px;
-            font-weight: bold;
-        }
-
-        #resetButton,
-        #exitButton {
-            display: none;
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            color: white;
-            border-radius: 10px;
-        }
-
-        #resetButton {
-            background-color: #FF5733;
-        }
-
-        #resetButton:hover {
-            background-color: #E5533D;
-        }
-
-        #exitButton {
-            background-color: #007bff;
-            margin-left: 30px;
-        }
-
-        #exitButton:hover {
-            background-color: #0056b3;
-        }
-
-        #buttons {
-            display: flex;
-            justify-content: center;
-        }
-    </style>
-</head>
-
-<body>
+@section('content')
     <div id="scoreContainer">
         <h2>Score</h2>
         <div id="score">0</div>
@@ -92,7 +14,9 @@
         <button id="resetButton">Reset Game</button>
         <button id="exitButton">Exit</button>
     </div>
+@endsection
 
+@push('scripts')
     <script>
         const canvas = document.getElementById('snakeGame');
         const ctx = canvas.getContext('2d');
@@ -211,7 +135,7 @@
 
             // Check for collisions
             if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead,
-                snake)) {
+                    snake)) {
                 clearInterval(game);
                 clearInterval(reverseTimer); // Stop reverse snake if game over
                 submitScore(score);
@@ -240,22 +164,61 @@
             ctx.arc(x + box / 2, y + box / 2, box / 2 + 5, 0, Math.PI * 2);
             ctx.fill();
 
+            // Draw the eyes
             ctx.fillStyle = "white";
             ctx.beginPath();
-            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
-            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
+            if (direction === "UP") {
+                // Vertical alignment for eyes
+                ctx.arc(x + box / 2 - 5, y + box / 2 - 15, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 + 5, y + box / 2 - 15, 3, 0, Math.PI * 2); // Right eye
+            } else if (direction === "DOWN") {
+                ctx.arc(x + box / 2 - 5, y + box / 2 + 15, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 + 5, y + box / 2 + 15, 3, 0, Math.PI * 2); // Right eye
+            } else if (direction === "LEFT") {
+                ctx.arc(x + box / 2 - 15, y + box / 2 - 5, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 - 15, y + box / 2 + 5, 3, 0, Math.PI * 2); // Right eye
+            } else if (direction === "RIGHT") {
+                ctx.arc(x + box / 2 + 15, y + box / 2 - 5, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 + 15, y + box / 2 + 5, 3, 0, Math.PI * 2); // Right eye
+            }
             ctx.fill();
 
+            // Draw the pupils
             ctx.fillStyle = "black";
             ctx.beginPath();
-            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
-            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
+            if (direction === "UP") {
+                ctx.arc(x + box / 2 - 5, y + box / 2 - 15, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 + 5, y + box / 2 - 15, 1.5, 0, Math.PI * 2); // Right pupil
+            } else if (direction === "DOWN") {
+                ctx.arc(x + box / 2 - 5, y + box / 2 + 15, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 + 5, y + box / 2 + 15, 1.5, 0, Math.PI * 2); // Right pupil
+            } else if (direction === "LEFT") {
+                ctx.arc(x + box / 2 - 15, y + box / 2 - 5, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 - 15, y + box / 2 + 5, 1.5, 0, Math.PI * 2); // Right pupil
+            } else if (direction === "RIGHT") {
+                ctx.arc(x + box / 2 + 15, y + box / 2 - 5, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 + 15, y + box / 2 + 5, 1.5, 0, Math.PI * 2); // Right pupil
+            }
             ctx.fill();
 
+            // Draw the tongue
             ctx.strokeStyle = "#FF6347";
             ctx.beginPath();
-            ctx.moveTo(x + box / 2, y + box);
-            ctx.lineTo(x + box / 2, y + box + 10);
+
+            if (direction === "UP") {
+                ctx.moveTo(x + box / 2, y + box / 2 - box / 2 - 10); // Tongue start above the head
+                ctx.lineTo(x + box / 2, y + box / 2 - box / 2 - 20); // Draw tongue upward
+            } else if (direction === "DOWN") {
+                ctx.moveTo(x + box / 2, y + box / 2 + box / 2); // Tongue start below the head
+                ctx.lineTo(x + box / 2, y + box / 2 + box / 2 + 10); // Draw tongue downward
+            } else if (direction === "LEFT") {
+                ctx.moveTo(x + box / 2 - box / 2 - 10, y + box / 2); // Tongue start left of the head
+                ctx.lineTo(x + box / 2 - box / 2 - 20, y + box / 2); // Draw tongue leftward
+            } else if (direction === "RIGHT") {
+                ctx.moveTo(x + box / 2 + box / 2, y + box / 2); // Tongue start right of the head
+                ctx.lineTo(x + box / 2 + box / 2 + 10, y + box / 2); // Draw tongue rightward
+            }
+
             ctx.stroke();
         }
 
@@ -333,7 +296,7 @@
             }
         }
 
-        // Function to draw the reverse snake's head
+        // Function to draw a reverse snake head
         function drawReverseSnakeHead(x, y) {
             ctx.fillStyle = "#FFD966";
             ctx.beginPath();
@@ -342,20 +305,58 @@
 
             ctx.fillStyle = "#021527";
             ctx.beginPath();
-            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
-            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
+            if (direction === "UP") {
+                // Position eyes above the head
+                ctx.arc(x + box / 2 - 5, y + box / 2 - 15, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 + 5, y + box / 2 - 15, 3, 0, Math.PI * 2); // Right eye
+            } else if (direction === "DOWN") {
+                // Position eyes below the head
+                ctx.arc(x + box / 2 - 5, y + box / 2 + 15, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 + 5, y + box / 2 + 15, 3, 0, Math.PI * 2); // Right eye
+            } else if (direction === "LEFT") {
+                // Position eyes to the left of the head
+                ctx.arc(x + box / 2 - 15, y + box / 2 - 5, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 - 15, y + box / 2 + 5, 3, 0, Math.PI * 2); // Right eye
+            } else if (direction === "RIGHT") {
+                // Position eyes to the right of the head
+                ctx.arc(x + box / 2 + 15, y + box / 2 - 5, 3, 0, Math.PI * 2); // Left eye
+                ctx.arc(x + box / 2 + 15, y + box / 2 + 5, 3, 0, Math.PI * 2); // Right eye
+            }
             ctx.fill();
 
             ctx.fillStyle = "#FFD966";
             ctx.beginPath();
-            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
-            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
+            if (direction === "UP") {
+                ctx.arc(x + box / 2 - 5, y + box / 2 - 15, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 + 5, y + box / 2 - 15, 1.5, 0, Math.PI * 2); // Right pupil
+            } else if (direction === "DOWN") {
+                ctx.arc(x + box / 2 - 5, y + box / 2 + 15, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 + 5, y + box / 2 + 15, 1.5, 0, Math.PI * 2); // Right pupil
+            } else if (direction === "LEFT") {
+                ctx.arc(x + box / 2 - 15, y + box / 2 - 5, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 - 15, y + box / 2 + 5, 1.5, 0, Math.PI * 2); // Right pupil
+            } else if (direction === "RIGHT") {
+                ctx.arc(x + box / 2 + 15, y + box / 2 - 5, 1.5, 0, Math.PI * 2); // Left pupil
+                ctx.arc(x + box / 2 + 15, y + box / 2 + 5, 1.5, 0, Math.PI * 2); // Right pupil
+            }
             ctx.fill();
 
-            ctx.strokeStyle = "#FFD966";
+            // Draw the tongue
+            ctx.strokeStyle = "#FF6347";
             ctx.beginPath();
-            ctx.moveTo(x + box / 2, y + box);
-            ctx.lineTo(x + box / 2, y + box + 10);
+            if (direction === "UP") {
+                ctx.moveTo(x + box / 2, y + box / 2 - box / 2 - 10); // Tongue start above the head
+                ctx.lineTo(x + box / 2, y + box / 2 - box / 2 - 20); // Draw tongue upward
+            } else if (direction === "DOWN") {
+                ctx.moveTo(x + box / 2, y + box / 2 + box / 2); // Tongue start below the head
+                ctx.lineTo(x + box / 2, y + box / 2 + box / 2 + 10); // Draw tongue downward
+            } else if (direction === "LEFT") {
+                ctx.moveTo(x + box / 2 - box / 2 - 10, y + box / 2); // Tongue start left of the head
+                ctx.lineTo(x + box / 2 - box / 2 - 20, y + box / 2); // Draw tongue leftward
+            } else if (direction === "RIGHT") {
+                ctx.moveTo(x + box / 2 + box / 2, y + box / 2); // Tongue start right of the head
+                ctx.lineTo(x + box / 2 + box / 2 + 10, y + box / 2); // Draw tongue rightward
+            }
             ctx.stroke();
         }
 
@@ -383,7 +384,4 @@
 
         initGame(); // Initialize the game when the page loads
     </script>
-
-</body>
-
-</html>
+@endpush

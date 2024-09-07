@@ -8,7 +8,7 @@ Route::get('/', function () {
 });
 
 Route::get('/snake', function () {
-    return view('snake');
+    return view('pages.snake');
 });
 
 Route::get('/high-scores', [ScoreController::class, 'index']);
