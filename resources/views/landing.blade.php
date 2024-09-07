@@ -55,8 +55,10 @@
 </head>
 
 <body>
-    <a href="/snake" class="button">Start Game</a>
-    <a href="/high-scores" class="button">High Scores</a>
+    <div style="margin-top: 20px;">
+        <a href="/snake" class="button">Start Game</a>
+        <a href="/high-scores" class="button">High Scores</a>
+    </div>
 </body>
 
 </html>

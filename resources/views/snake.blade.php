@@ -12,7 +12,6 @@
             align-items: center;
             height: 100vh;
             background-color: #8ACDEA;
-            /* Light blue background to match the landing page */
             margin: 0;
             flex-direction: column;
             font-family: 'Changa one', Arial, sans-serif;
@@ -20,9 +19,7 @@
 
         canvas {
             background-color: #021527;
-            /* Soft blue, matching the playful tone of the landing page */
             border: 5px solid #FFD966;
-            /* Bright yellow border to make it stand out */
             border-radius: 15px;
             position: relative;
         }
@@ -34,7 +31,6 @@
             padding: 10px 20px;
             border-radius: 10px;
             color: #021527;
-            /* Dark blue text to match the theme */
             font-size: 20px;
         }
 
@@ -62,7 +58,6 @@
 
         #resetButton {
             background-color: #FF5733;
-            /* Bright orange to match landing page tones */
         }
 
         #resetButton:hover {
@@ -103,7 +98,7 @@
         const ctx = canvas.getContext('2d');
         const resetButton = document.getElementById('resetButton');
         const exitButton = document.getElementById('exitButton');
-        const scoreDisplay = document.getElementById('score'); // Reference to the score display
+        const scoreDisplay = document.getElementById('score');
 
         const box = 20;
         let snake;
@@ -111,6 +106,12 @@
         let score;
         let direction;
         let game;
+
+        let reverseSnake = [];
+        let isReverseMode = false;
+        let reverseDirection = null;
+        let reverseTimer = null;
+        let reverseDuration = 20000; // 20 seconds (in milliseconds)
 
         document.addEventListener('keydown', directionControl);
         resetButton.addEventListener('click', resetGame);
@@ -133,6 +134,9 @@
             updateScoreDisplay();
             clearInterval(game);
             game = setInterval(draw, 100);
+
+            isReverseMode = false;
+            clearInterval(reverseTimer);
         }
 
         function directionControl(event) {
@@ -159,19 +163,17 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Snake with more playful design
+            // Draw Snake
             for (let i = 0; i < snake.length; i++) {
                 if (i === 0) {
-                    // Draw head (larger, playful, with eyes)
                     drawSnakeHead(snake[i].x, snake[i].y);
                 } else {
-                    // Draw body segments (rounder, playful)
                     drawSnakeBody(snake[i].x, snake[i].y, i);
                 }
             }
 
-            // Draw Food (bright green apple-like circle)
-            ctx.fillStyle = "#006400"; // Dark green for the food
+            // Draw Food
+            ctx.fillStyle = "#006400";
             ctx.beginPath();
             ctx.arc(food.x + box / 2, food.y + box / 2, box / 2, 0, Math.PI * 2);
             ctx.fill();
@@ -179,7 +181,7 @@
             let snakeX = snake[0].x;
             let snakeY = snake[0].y;
 
-            // Move the snake based on the direction
+            // Move the snake
             if (direction == "LEFT") snakeX -= box;
             if (direction == "UP") snakeY -= box;
             if (direction == "RIGHT") snakeX += box;
@@ -188,13 +190,18 @@
             // Check if snake eats the food
             if (snakeX == food.x && snakeY == food.y) {
                 score++;
-                updateScoreDisplay(); // Update score when snake eats food
+                updateScoreDisplay();
                 food = {
                     x: Math.floor(Math.random() * 19 + 1) * box,
                     y: Math.floor(Math.random() * 19 + 1) * box
                 };
+
+                // Check if reverse snake should appear
+                if (score % 10 === 0 && score !== 0) {
+                    startReverseSnake();
+                }
             } else {
-                snake.pop(); // Remove the last part of the snake
+                snake.pop();
             }
 
             let newHead = {
@@ -202,57 +209,159 @@
                 y: snakeY
             };
 
-            // Check for collisions (walls or itself)
-            if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
+            // Check for collisions
+            if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead,
+                snake)) {
                 clearInterval(game);
+                clearInterval(reverseTimer); // Stop reverse snake if game over
                 submitScore(score);
                 showResetButton();
             } else {
-                snake.unshift(newHead); // Add new head at the front of the snake
+                snake.unshift(newHead);
+            }
+
+            // Handle reverse snake mode
+            if (isReverseMode) {
+                moveReverseSnake();
+                drawReverseSnake();
+                if (collision(newHead, reverseSnake)) {
+                    clearInterval(game);
+                    clearInterval(reverseTimer);
+                    submitScore(score);
+                    showResetButton();
+                }
             }
         }
 
         // Function to draw a playful snake head
         function drawSnakeHead(x, y) {
-            // Head base (larger circle)
-            ctx.fillStyle = "#FF4500"; // Bright orange
+            ctx.fillStyle = "#FF4500";
             ctx.beginPath();
             ctx.arc(x + box / 2, y + box / 2, box / 2 + 5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Eyes
             ctx.fillStyle = "white";
             ctx.beginPath();
-            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 3, 0, Math.PI * 2); // Left eye
-            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 3, 0, Math.PI * 2); // Right eye
+            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
+            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Pupils
             ctx.fillStyle = "black";
             ctx.beginPath();
-            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2); // Left pupil
-            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2); // Right pupil
+            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
+            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Tongue (optional)
-            ctx.strokeStyle = "#FF6347"; // Red tongue
+            ctx.strokeStyle = "#FF6347";
             ctx.beginPath();
-            ctx.moveTo(x + box / 2, y + box); // Start of the tongue
-            ctx.lineTo(x + box / 2, y + box + 10); // End of the tongue
+            ctx.moveTo(x + box / 2, y + box);
+            ctx.lineTo(x + box / 2, y + box + 10);
             ctx.stroke();
         }
 
         // Function to draw a snake body segment
         function drawSnakeBody(x, y, i) {
-            ctx.fillStyle = i % 2 === 0 ? "#FF4500" : "#FFD966"; // Alternating colors for body segments
+            ctx.fillStyle = i % 2 === 0 ? "#FF4500" : "#FFD966";
             ctx.beginPath();
             ctx.arc(x + box / 2, y + box / 2, box / 2, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Function to update the score display
+        // Reverse Snake Logic
+        function startReverseSnake() {
+            reverseSnake = []; // Initialize an empty reverse snake
+            let initialX = Math.floor(Math.random() * 19 + 1) * box;
+            let initialY = Math.floor(Math.random() * 19 + 1) * box;
+
+            // Set default length for reverse snake
+            let defaultReverseSnakeLength = 5;
+
+            // Initialize the reverse snake with the default length
+            for (let i = 0; i < defaultReverseSnakeLength; i++) {
+                reverseSnake.push({
+                    x: initialX,
+                    y: initialY
+                });
+            }
+
+            isReverseMode = true;
+            reverseDirection = getRandomDirection();
+
+            reverseTimer = setTimeout(() => {
+                isReverseMode = false;
+                reverseSnake = [];
+            }, reverseDuration);
+        }
+
+        function getRandomDirection() {
+            const directions = ["LEFT", "UP", "RIGHT", "DOWN"];
+            return directions[Math.floor(Math.random() * directions.length)];
+        }
+
+        function moveReverseSnake() {
+            let reverseX = reverseSnake[0].x;
+            let reverseY = reverseSnake[0].y;
+
+            if (reverseDirection == "LEFT") reverseX -= box;
+            if (reverseDirection == "UP") reverseY -= box;
+            if (reverseDirection == "RIGHT") reverseX += box;
+            if (reverseDirection == "DOWN") reverseY += box;
+
+            if (reverseX < 0 || reverseX >= canvas.width || reverseY < 0 || reverseY >= canvas.height) {
+                reverseDirection = getRandomDirection(); // Change direction if about to hit the wall
+            }
+
+            let newReverseHead = {
+                x: reverseX,
+                y: reverseY
+            };
+
+            reverseSnake.pop();
+            reverseSnake.unshift(newReverseHead);
+        }
+
+        function drawReverseSnake() {
+            for (let i = 0; i < reverseSnake.length; i++) {
+                if (i === 0) {
+                    drawReverseSnakeHead(reverseSnake[i].x, reverseSnake[i].y);
+                } else {
+                    ctx.fillStyle = i % 2 === 0 ? "#FFFFFF" : "#000000";
+                    ctx.beginPath();
+                    ctx.arc(reverseSnake[i].x + box / 2, reverseSnake[i].y + box / 2, box / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Function to draw the reverse snake's head
+        function drawReverseSnakeHead(x, y) {
+            ctx.fillStyle = "#FFD966";
+            ctx.beginPath();
+            ctx.arc(x + box / 2, y + box / 2, box / 2 + 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#021527";
+            ctx.beginPath();
+            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
+            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#FFD966";
+            ctx.beginPath();
+            ctx.arc(x + box / 2 - 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
+            ctx.arc(x + box / 2 + 5, y + box / 2 - 5, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "#FFD966";
+            ctx.beginPath();
+            ctx.moveTo(x + box / 2, y + box);
+            ctx.lineTo(x + box / 2, y + box + 10);
+            ctx.stroke();
+        }
+
+        // Update score display
         function updateScoreDisplay() {
-            scoreDisplay.innerHTML = score; // Update the score on the screen
+            scoreDisplay.innerHTML = score;
         }
 
         function showResetButton() {
@@ -265,7 +374,7 @@
         }
 
         function exitGame() {
-            window.location.href = '/'; // Redirect to homepage (change URL as needed)
+            window.location.href = '/';
         }
 
         function submitScore(score) {
@@ -274,6 +383,7 @@
 
         initGame(); // Initialize the game when the page loads
     </script>
+
 </body>
 
 </html>
